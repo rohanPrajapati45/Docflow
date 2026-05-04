@@ -1,0 +1,115 @@
+.filelist-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.filelist-empty-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.filelist-empty p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.filelist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.file-card {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid #334155;
+  transition: border-color 0.2s;
+}
+
+.file-card:hover {
+  border-color: #475569;
+}
+
+.file-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.file-card-name {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.file-card-category {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.file-card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.file-card-uploader {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.file-card-uploader strong {
+  color: #cbd5e1;
+}
+
+.file-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.file-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.file-btn.download {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.file-btn.download:hover {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.file-btn.delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.file-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
