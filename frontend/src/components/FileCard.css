@@ -1,0 +1,245 @@
+.file-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.file-card:hover {
+  box-shadow: var(--shadow-medium);
+  border-color: var(--color-primary);
+}
+
+.file-preview {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* 1:1 aspect ratio */
+  background-color: var(--color-hover);
+  overflow: hidden;
+}
+
+.file-thumbnail,
+.file-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: white;
+}
+
+.file-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.file-card:hover .file-overlay {
+  opacity: 1;
+}
+
+.btn-action {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--color-primary);
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 600;
+}
+
+.btn-action:hover {
+  background-color: white;
+  transform: scale(1.1);
+}
+
+.star-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(255, 193, 7, 0.9);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compression-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background-color: rgba(52, 168, 83, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.file-info {
+  padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.file-size,
+.file-date {
+  white-space: nowrap;
+}
+
+.file-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.tag {
+  display: inline-block;
+  background-color: var(--color-hover);
+  color: var(--color-text-primary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tag-more {
+  display: inline-block;
+  background-color: var(--color-hover);
+  color: var(--color-text-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.file-menu {
+  position: relative;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-menu {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.btn-menu:hover {
+  background-color: var(--color-hover);
+  color: var(--color-text-primary);
+}
+
+.menu-dropdown {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  min-width: 180px;
+  box-shadow: var(--shadow-large);
+  z-index: 100;
+  transform: translateY(100%);
+  margin-top: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+
+.menu-item:hover {
+  background-color: var(--color-hover);
+}
+
+.menu-item.delete {
+  color: var(--color-error);
+}
+
+.menu-item.delete:hover {
+  background-color: rgba(234, 67, 53, 0.1);
+}
+
+.menu-dropdown hr {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .file-card {
+    border: 1px solid var(--color-border);
+  }
+
+  .file-overlay {
+    opacity: 1;
+  }
+}

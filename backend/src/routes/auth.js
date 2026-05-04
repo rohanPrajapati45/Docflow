@@ -1,26 +1,7 @@
 import { Router } from "express";
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-// ── User Model (inline) ──
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const User = mongoose.model("User", userSchema);
+import User from "../models/User.js";
 
 // ── Router ──
 const router = Router();
@@ -40,7 +21,12 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, password: hashedPassword });
+    const user = await User.create({
+      username,
+      password: hashedPassword,
+      storageUsed: 0,
+      storageLimit: 524288000, // 500 MB
+    });
 
     const token = jwt.sign(
       { id: user._id, username: user.username },
@@ -48,7 +34,12 @@ router.post("/register", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    res.status(201).json({ message: "User registered", token, username: user.username });
+    res.status(201).json({
+      message: "User registered",
+      token,
+      username: user.username,
+      userId: user._id,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -79,7 +70,12 @@ router.post("/login", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    res.json({ message: "Login successful", token, username: user.username });
+    res.json({
+      message: "Login successful",
+      token,
+      username: user.username,
+      userId: user._id,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
