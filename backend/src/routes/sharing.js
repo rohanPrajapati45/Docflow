@@ -67,6 +67,54 @@ router.post("/:fileId/share", async (req, res) => {
   }
 });
 
+// GET /api/share/stream/:token - Stream shared file directly (no auth required)
+router.get("/stream/:token", async (req, res) => {
+  try {
+    const token = req.params.token;
+
+    let shareLink = await redis.get(`session:${token}`);
+    if (shareLink) {
+      shareLink = JSON.parse(shareLink);
+    } else {
+      shareLink = await ShareLink.findOne({ token });
+      if (!shareLink) {
+        return res.status(404).json({ error: "Share link not found" });
+      }
+    }
+
+    // Check expiry
+    if (new Date(shareLink.expiresAt) < new Date()) {
+      return res.status(403).json({ error: "Share link has expired" });
+    }
+
+    // Check max downloads
+    if (shareLink.maxDownloads && shareLink.downloadCount >= shareLink.maxDownloads) {
+      return res.status(403).json({ error: "Download limit reached" });
+    }
+
+    const file = await File.findById(shareLink.fileId);
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    // Set response headers
+    res.setHeader("Content-Type", file.mimetype);
+    res.setHeader("Content-Length", file.size);
+
+    if (req.query.download === "true") {
+      res.setHeader("Content-Disposition", `attachment; filename="${file.originalName}"`);
+    } else {
+      res.setHeader("Content-Disposition", "inline");
+    }
+
+    // Stream file from MinIO directly to the browser
+    const stream = await minioClient.getObject(BUCKET, file.currentMinioKey);
+    stream.pipe(res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/share/:token - Public route to access shared file (no auth required)
 router.get("/:token", async (req, res) => {
   try {
@@ -106,12 +154,8 @@ router.get("/:token", async (req, res) => {
       return res.status(404).json({ error: "File not found" });
     }
 
-    // Generate presigned URL
-    const downloadUrl = await minioClient.presignedGetObject(
-      BUCKET,
-      file.currentMinioKey,
-      60
-    );
+    // Return backend proxy URL instead of presigned URL
+    const downloadUrl = `/api/share/stream/${token}?download=true`;
 
     res.json({
       file,

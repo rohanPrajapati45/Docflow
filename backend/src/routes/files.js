@@ -103,6 +103,11 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     const category = req.body.category || "general";
     const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
 
+    // Sanitize filename — remove spaces and special characters
+    const sanitizedName = originalname
+      .replace(/\s+/g, '_')            // spaces → underscore
+      .replace(/[^a-zA-Z0-9._-]/g, ''); // remove special chars
+
     // Check storage limit
     await checkStorageLimit(userId, size);
 
@@ -113,7 +118,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       await compressImageIfNeeded(buffer, mimetype);
 
     const finalSize = finalBuffer.length;
-    const minioKey = generateMinioKey(userId, folderId, fileId, originalname);
+    const minioKey = generateMinioKey(userId, folderId, fileId, sanitizedName);
 
     // Upload to MinIO
     await minioClient.putObject(BUCKET, minioKey, finalBuffer, finalSize, {
@@ -235,7 +240,54 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /api/files/:id/preview - Generate presigned preview URL
+// GET /api/files/:id/raw - Stream file content directly (proxy through backend)
+// Supports auth via ?token= query param so browser elements (img, video, iframe) can load files
+router.get("/:id/raw", async (req, res) => {
+  try {
+    // Support auth via query param for browser elements, or via Authorization header
+    const token = req.query.token || req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Verify JWT manually (since this route bypasses the normal auth middleware for query token support)
+    const jwt = await import("jsonwebtoken");
+    let decoded;
+    try {
+      decoded = jwt.default.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    const userId = String(decoded.id || decoded.userId);
+    const file = await File.findOne({ fileId: req.params.id, uploadedBy: userId });
+
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    // Log to recently viewed
+    await logRecentlyViewed(userId, file._id);
+
+    // Set response headers
+    res.setHeader("Content-Type", file.mimetype);
+    res.setHeader("Content-Length", file.size);
+
+    if (req.query.download === "true") {
+      res.setHeader("Content-Disposition", `attachment; filename="${file.originalName}"`);
+    } else {
+      res.setHeader("Content-Disposition", "inline");
+    }
+
+    // Stream file from MinIO directly to the browser
+    const stream = await minioClient.getObject(BUCKET, file.currentMinioKey);
+    stream.pipe(res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/files/:id/preview - Return file metadata + proxy preview URL
 router.get("/:id/preview", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -248,12 +300,9 @@ router.get("/:id/preview", async (req, res) => {
     // Log to recently viewed
     await logRecentlyViewed(userId, file._id);
 
-    // Generate presigned URL (60 seconds)
-    const previewUrl = await minioClient.presignedGetObject(
-      BUCKET,
-      file.currentMinioKey,
-      60
-    );
+    // Return a backend proxy URL instead of a MinIO presigned URL
+    const token = req.headers.authorization?.split(" ")[1];
+    const previewUrl = `/api/files/${file.fileId}/raw?token=${token}`;
 
     res.json({
       file,
@@ -272,7 +321,7 @@ router.get("/:id/preview", async (req, res) => {
   }
 });
 
-// GET /api/files/:id/download - Generate presigned download URL + log recent
+// GET /api/files/:id/download - Return file metadata + proxy download URL
 router.get("/:id/download", async (req, res) => {
   try {
     const userId = req.user.id;
@@ -285,12 +334,9 @@ router.get("/:id/download", async (req, res) => {
     // Log to recently viewed
     await logRecentlyViewed(userId, file._id);
 
-    // Generate presigned URL (60 seconds)
-    const downloadUrl = await minioClient.presignedGetObject(
-      BUCKET,
-      file.currentMinioKey,
-      60
-    );
+    // Return a backend proxy URL with download flag
+    const token = req.headers.authorization?.split(" ")[1];
+    const downloadUrl = `/api/files/${file.fileId}/raw?token=${token}&download=true`;
 
     res.json({ file, downloadUrl });
   } catch (error) {

@@ -131,9 +131,11 @@ const Dashboard = () => {
 
   const handlePreview = async (file) => {
     try {
-      const { data } = await getFilePreview(file.fileId);
+      const token = localStorage.getItem("token");
+      // Use backend proxy URL — streams file through the backend, no MinIO hostname issues
+      const url = `http://localhost:5000/api/files/${file.fileId}/raw?token=${token}`;
       setPreviewFile(file);
-      setPreviewUrl(data.previewUrl);
+      setPreviewUrl(url);
       setShowPreviewModal(true);
     } catch (error) {
       toast.error("Failed to load preview");
@@ -142,8 +144,10 @@ const Dashboard = () => {
 
   const handleDownload = async (file) => {
     try {
-      const { data } = await getFileDownload(file.fileId);
-      window.open(data.downloadUrl, "_blank");
+      const token = localStorage.getItem("token");
+      // Use backend proxy URL with download flag
+      const url = `http://localhost:5000/api/files/${file.fileId}/raw?token=${token}&download=true`;
+      window.open(url, "_blank");
       toast.success("Download started");
     } catch (error) {
       toast.error("Failed to download file");

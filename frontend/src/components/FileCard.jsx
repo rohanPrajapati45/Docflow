@@ -21,22 +21,13 @@ const FileCard = ({ file, onPreview, onDownload, onDelete, onShare, onStar, onVe
   const isVideo = file.mimetype.startsWith("video/");
 
   useEffect(() => {
-    let mounted = true;
+    if (!isImage) return;
 
-    const loadThumbnail = async () => {
-      if (!isImage) return;
-      try {
-        const { data } = await getFilePreview(file.fileId);
-        if (mounted) setThumbnailUrl(data.previewUrl);
-      } catch {
-        if (mounted) setThumbnailUrl("");
-      }
-    };
-
-    loadThumbnail();
-    return () => {
-      mounted = false;
-    };
+    // Use backend proxy URL directly for thumbnails
+    const token = localStorage.getItem("token");
+    if (token) {
+      setThumbnailUrl(`http://localhost:5000/api/files/${file.fileId}/raw?token=${token}`);
+    }
   }, [file.fileId, isImage]);
 
   return (

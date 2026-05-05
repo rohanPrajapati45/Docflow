@@ -4,12 +4,17 @@ import mongoose from "mongoose";
 const authMiddleware = (req, res, next) => {
   const header = req.headers.authorization;
 
-  if (!header || !header.startsWith("Bearer ")) {
+  // Support token via query param for browser elements (img, video, iframe)
+  // that can't send Authorization headers
+  const token = (header && header.startsWith("Bearer "))
+    ? header.split(" ")[1]
+    : req.query.token;
+
+  if (!token) {
     return res.status(401).json({ error: "No token provided" });
   }
 
   try {
-    const token = header.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const userId = decoded.id || decoded.userId;
